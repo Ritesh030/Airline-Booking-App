@@ -1,4 +1,5 @@
-const { Op, where } = require('sequelize');
+const { Op } = require('sequelize');
+const { buildApiError } = require("../utils/error_handler");
 const { City } = require('../models/index')
 
 class CityRepository {
@@ -7,20 +8,44 @@ class CityRepository {
                   const city = await City.create({name: name.toLowerCase()});
                   return city 
             } catch (error) {
-                  throw {error}
+                  throw buildApiError(error, 500, "Error while creating city in city_repository")
             }
       }
 
-      async deleteCity(cityId) {
+      async createMultiCity(data){
             try {
-                  const deletedRows = await City.destroy({
-                        where: {
-                              id:cityId
-                        }
-                  })
-                  return deletedRows > 0
+                  const cities = await City.bulkCreate(data);
+                  return cities
             } catch (error) {
-                  throw {error}
+                  throw buildApiError(error, 500, "Error while creating multiple cities in city_repository")
+            }
+      }
+
+      async getCity(cityId){
+            try {
+                  const city = await City.findByPk(cityId) // since id is primary key
+                  return city
+            } catch (error) {
+                  throw buildApiError(error, 500, "Error while geting city in city_repository")
+            }
+      }
+
+      async getAllCities(filter){
+            try {
+                  if(filter.name){
+                        const cities = await City.findAll({
+                              where: {
+                                    name: {
+                                          [Op.startsWith]: filter.name.toLowerCase()
+                                    }
+                              }
+                        })
+                        return cities
+                  }
+                  const cities = await City.findAll()
+                  return cities
+            } catch (error) {
+                  throw buildApiError(error, 500, "Error while geting all cities in city_repository")
             }
       }
 
@@ -42,35 +67,20 @@ class CityRepository {
                   await city.save();
                   return city
             } catch (error) {
-                  throw {error}
+                  throw buildApiError(error, 500, "Error while updating city in city_repository")
             }
       }
 
-      async getCity(cityId){
+       async deleteCity(cityId) {
             try {
-                  const city = await City.findByPk(cityId) // since id is primary key
-                  return city
+                  const deletedRows = await City.destroy({
+                        where: {
+                              id:cityId
+                        }
+                  })
+                  return deletedRows > 0
             } catch (error) {
-                  throw {error}
-            }
-      }
-
-      async getAllCities(filter){
-            try {
-                  if(filter.name){
-                        const cities = await City.findAll({
-                              where: {
-                                    name: {
-                                          [Op.startsWith]: filter.name.toLowerCase()
-                                    }
-                              }
-                        })
-                        return cities
-                  }
-                  const cities = await City.findAll()
-                  return cities
-            } catch (err) {
-                  throw err
+                  throw buildApiError(error, 500, "Error while deleting city in city_repository")
             }
       }
 }

@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      this.belongsTo(moodels.City, {
+      this.belongsTo(models.City, {
         foreignKey: 'cityId',
         onDelete: 'CASCADE'
       })
@@ -32,4 +32,4 @@ module.exports = (sequelize, DataTypes) => {
     modelName: 'Airport',
   });
   return Airport;
-};
+}; 

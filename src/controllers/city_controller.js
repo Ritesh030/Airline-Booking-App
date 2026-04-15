@@ -1,125 +1,69 @@
 const { CityService } = require("../services");
+const apiResponse = require("../utils/api_response");
+const { sendErrorResponse } = require("../utils/error_handler");
 
 const cityService = new CityService
 
-const create = async (req,res) => {
+const create = async (req, res) => {
       try {
             const city = await cityService.createCity(req.body)
+
             return res.status(201)
-                      .json({
-                        data: city,
-                        success: true,
-                        message: "City created successfully",
-                        err: {}
-                      })
+                  .json(new apiResponse(201, city, "city created"))
       } catch (error) {
-            return res.status(500).json({
-                  data: {},
-                  success: false,
-                  message: "failed to create city",
-                  err: error
-            })
+            return sendErrorResponse(res, error, "Failed to create city")
       }
 }
 
-const destroy = async (req,res) => {
+const createMultiple = async (req, res) => {
       try {
-            const response = await cityService.deleteCity(req.params.id)
-            if (!response) {
-                  return res.status(404).json({
-                        data: {},
-                        success: false,
-                        message: "city not found",
-                        err: {}
-                  })
-            }
-            return res.status(200).json({
-                  data: response,
-                  success: true,
-                  message: "city deleted successfully",
-                  err: {}
-            })
+            const cities = await cityService.createMultiCity(req.body)
+
+            return res.status(201)
+                  .json(new apiResponse(201, cities, "cities created"))
       } catch (error) {
-            return res.status(500).json({
-                  data: {},
-                  success: false,
-                  message: "failed to delete city",
-                  err: error
-            })
+            return sendErrorResponse(res, error, "Failed to create cities")
       }
 }
 
-const get = async (req,res) => {
+const get = async (req, res) => {
       try {
             const city = await cityService.getCity(req.params.id)
-            if (!city) {
-                  return res.status(404).json({
-                        data: {},
-                        success: false,
-                        message: "city not found",
-                        err: {}
-                  })
-            }
-            return res.status(200).json({
-                  data: city,
-                  success: true,
-                  message: "city fetched successfully",
-                  err: {}
-            })
+
+            return res.status(200).json(new apiResponse(200, city))
       } catch (error) {
-            return res.status(500).json({
-                  data: {},
-                  success: false,
-                  message: "failed to fetch city",
-                  err: error
-            })
+            return sendErrorResponse(res, error, "Failed to fetch city")
       }
 }
 
-const update = async (req,res) => {
-      try {
-            const city = await cityService.updateCity(req.params.id, req.body)
-            if (!city) {
-                  return res.status(404).json({
-                        data: {},
-                        success: false,
-                        message: "city not found",
-                        err: {}
-                  })
-            }
-            return res.status(200).json({
-                  data: city,
-                  success: true,
-                  message: "city updated successfully",
-                  err: {}
-            })
-      } catch (error) {
-            return res.status(500).json({
-                  data: {},
-                  success: false,
-                  message: "failed to update city",
-                  err: error
-            })
-      }
-}
-
-const getAll = async (req,res) => {
+const getAll = async (req, res) => {
       try {
             const cities = await cityService.getAllCities(req.query);
-            return res.status(200).json({
-                  data: cities,
-                  success: true,
-                  message: "cities fetched successfully",
-                  err: {}
-            })
+            
+            return res.status(200).json(new apiResponse(200, cities))
 
       } catch (error) {
-            return res.status(500).json({
-                  data: {},
-                  success: false,
-                  message: "failed to get all cities",
-                  err: error
-            })
+            return sendErrorResponse(res, error, "Failed to get all cities")
+      }
+}
+
+const update = async (req, res) => {
+      try {
+            const city = await cityService.updateCity(req.params.id, req.body)
+
+            return res.status(200).json(new apiResponse(200, city, "cities updated"))
+      } catch (error) {
+            return sendErrorResponse(res, error, "Failed to update city")
+      }
+}
+
+const destroy = async (req, res) => {
+      try {
+            const response = await cityService.deleteCity(req.params.id)
+
+            return res.status(200).json(new apiResponse(200, response, "city deleted"))
+      } catch (error) {
+            return sendErrorResponse(res, error, "Failed to delete city")
       }
 }
 
@@ -128,5 +72,6 @@ module.exports = {
       get,
       destroy,
       update,
-      getAll
+      getAll,
+      createMultiple
 }
