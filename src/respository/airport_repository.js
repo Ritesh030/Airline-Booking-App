@@ -5,7 +5,7 @@ const { City } = require('../models/index')
 class AirportRepository {
       constructor(Airport) {
             this.model = Airport
-      }
+      } 
 
       async createAirport({ name, address, cityId }) {
             try {

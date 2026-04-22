@@ -1,4 +1,4 @@
-const { AirportService } = require("../services");
+const { AirportService } = require("../services/index");
 const apiResponse = require("../utils/api_response");
 const { sendErrorResponse } = require("../utils/error_handler");
 

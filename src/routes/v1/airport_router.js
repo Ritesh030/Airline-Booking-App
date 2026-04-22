@@ -9,4 +9,4 @@ airportRouter.get('/', airportController.getAll)
 airportRouter.patch('/:id', airportController.update)
 airportRouter.delete('/:id', airportController.destroy)
 
-module.exports = airportRouter
+module.exports = airportRouter 
