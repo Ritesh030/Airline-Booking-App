@@ -1,11 +1,11 @@
-const { flightRepository, airplaneRepository } = require("../respository");
+const { flightRepository, AirplaneRepository } = require("../respository");
 const apiError = require("../utils/api_error");
 const { buildApiError } = require("../utils/error_handler");
 
 class FlightService {
       constructor() {
-            this.flightRepository = flightRepository,
-            this.airplaneRepository = airplaneRepository
+            this.flightRepository = flightRepository;
+            this.airplaneRepository = new AirplaneRepository();
       }
 
       async createFlight(data){
@@ -14,7 +14,7 @@ class FlightService {
                         throw new apiError(400, "Request body is required")
                   }
 
-                  const airplane = await this.airplaneRepository.getAirplane(data.airplaneId);
+                  const airplane = await this.airplaneRepository.get(data.airplaneId);
                   if (!airplane) {
                         throw new apiError(400, "Airplane with this id does not exist")
                   }

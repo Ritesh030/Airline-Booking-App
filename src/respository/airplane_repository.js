@@ -1,22 +1,9 @@
-const apiError = require("../utils/api_error")
+const CrudRepository = require("./crud_repository");
+const { Airplane } = require('../models/index')
 
-class AirplaneRepository {
-      constructor(Airplane) {
-            this.model = Airplane
-      }
-
-      async createAirplane(data){
-            try {
-                  const airplane = await this.model.create(data);
-                  return airplane
-            } catch (error) {
-                  throw new apiError(500, "Error while creating aiplane in repo")
-            }
-      }
-
-      async getAirplane(airplaneId){
-            const airplane  = await this.model.findByPk(airplaneId)
-            return airplane
+class AirplaneRepository extends CrudRepository{
+      constructor() {
+            super(Airplane)
       }
 }
 
