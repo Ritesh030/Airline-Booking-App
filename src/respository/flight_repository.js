@@ -1,34 +1,34 @@
 const { Op } = require("sequelize");
-const apiError = require("../utils/api_error");
-const { buildApiError } = require("../utils/error_handler");
+const AppError = require('../utils/AppError');
+const { StatusCodes } = require('http-status-codes');
 
 class FlightRepository {
       constructor(flight) {
             this.flightModel = flight
       }
 
-      #createFilter(data){
+      #createFilter(data) {
             data = data || {}
             let filter = {}
-            if(data.arrivalAirportId){
+            if (data.arrivalAirportId) {
                   filter.arrivalAirportId = data.arrivalAirportId
             }
-            if(data.departureAirportId) {
+            if (data.departureAirportId) {
                   filter.departureAirportId = data.departureAirportId
             }
-            if(data.minPrice && data.maxPrice){
+            if (data.minPrice && data.maxPrice) {
                   Object.assign(filter, {
                         [Op.and]: [
-                              {price: {[Op.gte]: data.minPrice}},
-                              {price: {[Op.lte]: data.maxPrice}}
+                              { price: { [Op.gte]: data.minPrice } },
+                              { price: { [Op.lte]: data.maxPrice } }
                         ]
                   })
             }
-            if(data.minPrice){
-                  Object.assign(filter, {price: {[Op.gte]: data.minPrice}});
+            else if (data.minPrice) {
+                  Object.assign(filter, { price: { [Op.gte]: data.minPrice } });
             }
-            if(data.maxPrice){
-                  Object.assign(filter, {price: {[Op.lte]: data.maxPrice}});
+            else if (data.maxPrice) {
+                  Object.assign(filter, { price: { [Op.lte]: data.maxPrice } });
             }
             return filter
       }
@@ -38,28 +38,70 @@ class FlightRepository {
                   const flight = await this.flightModel.create(data);
                   return flight
             } catch (error) {
-                  throw buildApiError(error, 400, "error while creating flight in repo")
+                  if (error instanceof AppError) throw error;
+                  throw new AppError(
+                        'DatabaseError',
+                        'Error creating flight',
+                        error.message,
+                        StatusCodes.INTERNAL_SERVER_ERROR
+                  );
             }
       }
 
-      async getFlight(flightId){
+      async getFlight(flightId) {
             try {
                   const flight = await this.flightModel.findByPk(flightId)
                   return flight
             } catch (error) {
-                  throw new apiError(400, "error in flight repo")
+                  if (error instanceof AppError) throw error;
+                  throw new AppError(
+                        'DatabaseError',
+                        'Error fetching flight',
+                        error.message,
+                        StatusCodes.INTERNAL_SERVER_ERROR
+                  );
             }
       }
 
-      async getAllFlights(filter){
+      async getAllFlights(filter) {
             try {
                   const filterObj = this.#createFilter(filter)
                   const flights = await this.flightModel.findAll(
-                        {where: filterObj}
+                        { where: filterObj }
                   )
                   return flights
             } catch (error) {
-                  throw buildApiError(error, 400, "error while getting flights in repo")
+                  if (error instanceof AppError) throw error;
+                  throw new AppError(
+                        'DatabaseError',
+                        'Error fetching flights',
+                        error.message,
+                        StatusCodes.INTERNAL_SERVER_ERROR
+                  );
+            }
+      }
+
+      async updateFlight(flightId, updateData) {
+            try {
+                  const flight = await this.flightModel.findByPk(flightId)
+                  if (!flight) {
+                        throw new AppError(
+                              'NotFoundError',
+                              'Flight not found',
+                              `Flight with id ${flightId} does not exist`,
+                              StatusCodes.NOT_FOUND
+                        )
+                  }
+                  const updatedFlight = await flight.update(updateData)
+                  return updatedFlight
+            } catch (error) {
+                  if (error instanceof AppError) throw error;
+                  throw new AppError(
+                        'DatabaseError',
+                        'Error updating flight',
+                        error.message,
+                        StatusCodes.INTERNAL_SERVER_ERROR
+                  );
             }
       }
 }

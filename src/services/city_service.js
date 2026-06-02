@@ -1,22 +1,31 @@
+const { StatusCodes } = require('http-status-codes');
 const { cityRepository } = require('../respository/index')
-const apiError = require('../utils/api_error')
-const { buildApiError } = require('../utils/error_handler')
+const { AppError, buildAppError } = require('../utils')
 
 class CityService {
       constructor() {
             this.cityRepository = cityRepository
       }
 
-      async createCity(data){
+      async createCity(data) {
             try {
                   const city = await this.cityRepository.createCity(data)
                   return city
             } catch (error) {
-                  throw buildApiError(error, 500, "Error while creating city in city_service")
+                  // Handle Sequelize validation errors separately
+                  if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError' || error.name === 'SequelizeForeignKeyConstraintError') {
+                        console.error('[ERROR] Validation error in createCity:', error.message)
+                        throw buildAppError(error, { serviceName: 'FlightSearchService', controllerName: 'createCity' })
+                  }
+                  if (error instanceof AppError) {
+                        throw error
+                  }
+                  console.error('[ERROR] Error creating city:', error.message)
+                  throw buildAppError(error, { serviceName: 'FlightSearchService', controllerName: 'createCity' })
             }
       }
 
-      async createMultiCity(data){
+      async createMultiCity(data) {
             try {
                   data.forEach(entry => {
                         entry.name = entry.name.toLowerCase();
@@ -24,52 +33,80 @@ class CityService {
                   const cities = await this.cityRepository.createMultiCity(data)
                   return cities
             } catch (error) {
-                  throw buildApiError(error, 500, "Error while creating multiple city in city_service")
+                  if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError' || error.name === 'SequelizeForeignKeyConstraintError') {
+                        console.error('[ERROR] Validation error in createMultiCity:', error.message)
+                        throw buildAppError(error, { serviceName: 'FlightSearchService', controllerName: 'createMultiCity' })
+                  }
+                  if (error instanceof AppError) {
+                        throw error
+                  }
+                  console.error('[ERROR] Error creating multiple cities:', error.message)
+                  throw buildAppError(error, { serviceName: 'FlightSearchService', controllerName: 'createMultiCity' })
             }
       }
 
-      async getCity(cityId){
+      async getCity(cityId) {
             try {
                   const city = await this.cityRepository.getCity(cityId)
-                  if(!city){
-                        throw new apiError(404, "City not found")
+                  if (!city) {
+                        throw new AppError('NotFoundError', 'City not found', 'The requested city does not exist', StatusCodes.NOT_FOUND)
                   }
                   return city
             } catch (error) {
-                  throw buildApiError(error, 500, "Error while geting city in city_service")
+                  if (error instanceof AppError) {
+                        throw error
+                  }
+                  console.error('[ERROR] Error fetching city:', error.message)
+                  throw buildAppError(error, { serviceName: 'FlightSearchService', controllerName: 'getCity' })
             }
       }
 
-      async getAllCities(filter){
+      async getAllCities(filter) {
             try {
-                  const cities = await this.cityRepository.getAllCities({name: filter.name});
+                  const cities = await this.cityRepository.getAllCities({ name: filter.name });
                   return cities
             } catch (error) {
-                 throw buildApiError(error, 500, "Error while geting all city in city_service")
+                  if (error instanceof AppError) {
+                        throw error
+                  }
+                  console.error('[ERROR] Error fetching all cities:', error.message)
+                  throw buildAppError(error, { serviceName: 'FlightSearchService', controllerName: 'getAllCities' })
             }
       }
-      
-      async updateCity(cityId,data){
+
+      async updateCity(cityId, data) {
             try {
-                  const city = await this.cityRepository.updateCity(cityId,data)
-                  if(!city){
-                        throw new apiError(404, "City not found")
+                  const city = await this.cityRepository.updateCity(cityId, data)
+                  if (!city) {
+                        throw new AppError('NotFoundError', 'City not found', 'The requested city does not exist', StatusCodes.NOT_FOUND)
                   }
                   return city
             } catch (error) {
-                  throw buildApiError(error, 500, "Error while updating city in city_service")
+                  if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError' || error.name === 'SequelizeForeignKeyConstraintError') {
+                        console.error('[ERROR] Validation error in updateCity:', error.message)
+                        throw buildAppError(error, { serviceName: 'FlightSearchService', controllerName: 'updateCity' })
+                  }
+                  if (error instanceof AppError) {
+                        throw error
+                  }
+                  console.error('[ERROR] Error updating city:', error.message)
+                  throw buildAppError(error, { serviceName: 'FlightSearchService', controllerName: 'updateCity' })
             }
       }
-      
-      async deleteCity(cityId){
+
+      async deleteCity(cityId) {
             try {
                   const response = await this.cityRepository.deleteCity(cityId)
-                  if(!response){
-                        throw new apiError(404, "City not found")
+                  if (!response) {
+                        throw new AppError('NotFoundError', 'City not found', 'The requested city does not exist', StatusCodes.NOT_FOUND)
                   }
                   return response
             } catch (error) {
-                  throw buildApiError(error, 500, "Error while deleting city in city_service")
+                  if (error instanceof AppError) {
+                        throw error
+                  }
+                  console.error('[ERROR] Error deleting city:', error.message)
+                  throw buildAppError(error, { serviceName: 'FlightSearchService', controllerName: 'deleteCity' })
             }
       }
 }

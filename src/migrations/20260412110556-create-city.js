@@ -12,8 +12,7 @@ module.exports = {
       name: {
         type: Sequelize.STRING,
         allowNull: false, // all the changes in migration will be affecting if you try to change someting directly to the table not from js(database level)
-        unique: true,
-        lowercase: true
+        unique: true
       },
       createdAt: {
         allowNull: false,

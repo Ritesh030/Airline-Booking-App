@@ -1,6 +1,6 @@
+const { StatusCodes } = require('http-status-codes');
 const { flightRepository, AirplaneRepository } = require("../respository");
-const apiError = require("../utils/api_error");
-const { buildApiError } = require("../utils/error_handler");
+const { AppError, buildAppError } = require("../utils");
 
 class FlightService {
       constructor() {
@@ -8,15 +8,15 @@ class FlightService {
             this.airplaneRepository = new AirplaneRepository();
       }
 
-      async createFlight(data){
+      async createFlight(data) {
             try {
                   if (!data || Object.keys(data).length === 0) {
-                        throw new apiError(400, "Request body is required")
+                        throw new AppError('ValidationError', 'Request body is required', 'Request body cannot be empty', StatusCodes.BAD_REQUEST)
                   }
 
                   const airplane = await this.airplaneRepository.get(data.airplaneId);
                   if (!airplane) {
-                        throw new apiError(400, "Airplane with this id does not exist")
+                        throw new AppError('ValidationError', 'Airplane with this id does not exist', 'Invalid airplane ID', StatusCodes.BAD_REQUEST)
                   }
 
                   const flight = await this.flightRepository.createFlight({
@@ -24,25 +24,58 @@ class FlightService {
                   });
                   return flight
             } catch (error) {
-                  throw buildApiError(error, 400, "error while creating flight in service layer")
+                  if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError' || error.name === 'SequelizeForeignKeyConstraintError') {
+                        console.error('[ERROR] Validation error in createFlight:', error.message)
+                        throw buildAppError(error, { serviceName: 'FlightSearchService', controllerName: 'createFlight' })
+                  }
+                  if (error instanceof AppError) {
+                        throw error
+                  }
+                  console.error('[ERROR] Error creating flight:', error.message)
+                  throw buildAppError(error, { serviceName: 'FlightSearchService', controllerName: 'createFlight' })
             }
       }
 
-      async getFlight(flightId){
+      async getFlight(flightId) {
             try {
                   const flight = await this.flightRepository.getFlight(flightId);
                   return flight
             } catch (error) {
-                  throw new apiError(400, "error while getting flight in service")
+                  if (error instanceof AppError) {
+                        throw error
+                  }
+                  console.error('[ERROR] Error fetching flight:', error.message)
+                  throw buildAppError(error, { serviceName: 'FlightSearchService', controllerName: 'getFlight' })
             }
       }
 
-      async getAllFlights(data){
+      async getAllFlights(data) {
             try {
                   const flights = await this.flightRepository.getAllFlights(data);
                   return flights
             } catch (error) {
-                  throw new apiError(400, "error while getting all Flights")
+                  if (error instanceof AppError) {
+                        throw error
+                  }
+                  console.error('[ERROR] Error fetching all flights:', error.message)
+                  throw buildAppError(error, { serviceName: 'FlightSearchService', controllerName: 'getAllFlights' })
+            }
+      }
+
+      async updateFlight(flightId, updateData) {
+            try {
+                  const flight = await this.flightRepository.updateFlight(flightId, updateData);
+                  return flight
+            } catch (error) {
+                  if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError' || error.name === 'SequelizeForeignKeyConstraintError') {
+                        console.error('[ERROR] Validation error in updateFlight:', error.message)
+                        throw buildAppError(error, { serviceName: 'FlightSearchService', controllerName: 'updateFlight' })
+                  }
+                  if (error instanceof AppError) {
+                        throw error
+                  }
+                  console.error('[ERROR] Error updating flight:', error.message)
+                  throw buildAppError(error, { serviceName: 'FlightSearchService', controllerName: 'updateFlight' })
             }
       }
 }

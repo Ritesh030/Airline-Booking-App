@@ -20,8 +20,7 @@ module.exports = (sequelize, DataTypes) => {
     name: {
       type: DataTypes.STRING,
       allowNull: false, // model-level validation should live on the field definition itself
-      unique: true,
-      lowercase: true
+      unique: true
     }
   }, {
     sequelize,

@@ -1,38 +1,57 @@
 const { Op } = require('sequelize');
-const { buildApiError } = require("../utils/error_handler");
-const { City } = require('../models/index')
+const { City } = require('../models/index');
+const AppError = require('../utils/AppError');
+const { StatusCodes } = require('http-status-codes');
 
 class CityRepository {
-      async createCity({ name }){
+      async createCity({ name }) {
             try {
-                  const city = await City.create({name: name.toLowerCase()});
-                  return city 
+                  const city = await City.create({ name: name.toLowerCase() });
+                  return city
             } catch (error) {
-                  throw buildApiError(error, 500, "Error while creating city in city_repository")
+                  if (error instanceof AppError) throw error;
+                  throw new AppError(
+                        'DatabaseError',
+                        'Error creating city',
+                        error.message,
+                        StatusCodes.INTERNAL_SERVER_ERROR
+                  );
             }
       }
 
-      async createMultiCity(data){
+      async createMultiCity(data) {
             try {
                   const cities = await City.bulkCreate(data);
                   return cities
             } catch (error) {
-                  throw buildApiError(error, 500, "Error while creating multiple cities in city_repository")
+                  if (error instanceof AppError) throw error;
+                  throw new AppError(
+                        'DatabaseError',
+                        'Error creating multiple cities',
+                        error.message,
+                        StatusCodes.INTERNAL_SERVER_ERROR
+                  );
             }
       }
 
-      async getCity(cityId){
+      async getCity(cityId) {
             try {
                   const city = await City.findByPk(cityId) // since id is primary key
                   return city
             } catch (error) {
-                  throw buildApiError(error, 500, "Error while geting city in city_repository")
+                  if (error instanceof AppError) throw error;
+                  throw new AppError(
+                        'DatabaseError',
+                        'Error fetching city',
+                        error.message,
+                        StatusCodes.INTERNAL_SERVER_ERROR
+                  );
             }
       }
 
-      async getAllCities(filter){
+      async getAllCities(filter) {
             try {
-                  if(filter.name){
+                  if (filter.name) {
                         const cities = await City.findAll({
                               where: {
                                     name: {
@@ -45,7 +64,13 @@ class CityRepository {
                   const cities = await City.findAll()
                   return cities
             } catch (error) {
-                  throw buildApiError(error, 500, "Error while geting all cities in city_repository")
+                  if (error instanceof AppError) throw error;
+                  throw new AppError(
+                        'DatabaseError',
+                        'Error fetching all cities',
+                        error.message,
+                        StatusCodes.INTERNAL_SERVER_ERROR
+                  );
             }
       }
 
@@ -67,20 +92,34 @@ class CityRepository {
                   await city.save();
                   return city
             } catch (error) {
-                  throw buildApiError(error, 500, "Error while updating city in city_repository")
+                  if (error instanceof AppError) {
+                        throw error;
+                  }
+                  throw new AppError(
+                        'DatabaseError',
+                        'Error while updating city',
+                        error.message || 'Unknown error occurred',
+                        StatusCodes.INTERNAL_SERVER_ERROR
+                  )
             }
       }
 
-       async deleteCity(cityId) {
+      async deleteCity(cityId) {
             try {
                   const deletedRows = await City.destroy({
                         where: {
-                              id:cityId
+                              id: cityId
                         }
                   })
                   return deletedRows > 0
             } catch (error) {
-                  throw buildApiError(error, 500, "Error while deleting city in city_repository")
+                  if (error instanceof AppError) throw error;
+                  throw new AppError(
+                        'DatabaseError',
+                        'Error deleting city',
+                        error.message,
+                        StatusCodes.INTERNAL_SERVER_ERROR
+                  );
             }
       }
 }

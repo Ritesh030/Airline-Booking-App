@@ -1,57 +1,51 @@
+const { StatusCodes } = require('http-status-codes');
 const { AirportService } = require("../services/index");
-const apiResponse = require("../utils/api_response");
-const { sendErrorResponse } = require("../utils/error_handler");
+const { sendSuccessResponse, sendErrorResponse } = require("../utils");
 
 const airportService = new AirportService
 
-const create = async (req,res) => {
+const create = async (req, res) => {
       try {
-            const airport = await airportService.createAirport(req.body)
-            return res.status(201)
-                      .json(new apiResponse(201, airport, "airport created"))
+            const airport = await airportService.createAirport(req.body);
+            return sendSuccessResponse(res, StatusCodes.CREATED, "airport created", airport);
       } catch (error) {
-            return sendErrorResponse(res, error, "Failed to create airport")
+            return sendErrorResponse(res, error);
       }
 }
 
-const get = async (req,res) => {
+const get = async (req, res) => {
       try {
-            const airport = await airportService.getAirport(req.params.id)
-          
-            return res.status(200).json(new apiResponse(200, airport))
+            const airport = await airportService.getAirport(req.params.id);
+            return sendSuccessResponse(res, StatusCodes.OK, "airport fetched", airport);
       } catch (error) {
-            return sendErrorResponse(res, error, "Failed to fetch airport")
+            return sendErrorResponse(res, error);
       }
 }
 
-const getAll = async (req,res) => {
+const getAll = async (req, res) => {
       try {
             const airports = await airportService.getAllAirport();
-
-            return res.status(200).json(new apiResponse(200, airports))
-
+            return sendSuccessResponse(res, StatusCodes.OK, "airports fetched", airports);
       } catch (error) {
-            return sendErrorResponse(res, error, "Failed to get all airports")
+            return sendErrorResponse(res, error);
       }
 }
 
-const update = async (req,res) => {
+const update = async (req, res) => {
       try {
-            const airport = await airportService.updateAirport(req.params.id, req.body)
-        
-            return res.status(200).json(new apiResponse(200, airport, "airport updated"))
+            const airport = await airportService.updateAirport(req.params.id, req.body);
+            return sendSuccessResponse(res, StatusCodes.OK, "airport updated", airport);
       } catch (error) {
-            return sendErrorResponse(res, error, "Failed to update airport")
+            return sendErrorResponse(res, error);
       }
 }
 
-const destroy = async (req,res) => {
+const destroy = async (req, res) => {
       try {
-            const response = await airportService.deleteAirport(req.params.id)
-      
-            return res.status(200).json(new apiResponse(200, response, "airport deleted"))
+            const response = await airportService.deleteAirport(req.params.id);
+            return sendSuccessResponse(res, StatusCodes.OK, "airport deleted", response);
       } catch (error) {
-            return sendErrorResponse(res, error, "Failed to delete airport")
+            return sendErrorResponse(res, error);
       }
 }
 

@@ -1,17 +1,22 @@
-const apiError = require("../utils/api_error");
-const { buildApiError } = require("../utils/error_handler");
 const { City } = require('../models/index')
+const AppError = require('../utils/AppError');
+const { StatusCodes } = require('http-status-codes');
 
 class AirportRepository {
       constructor(Airport) {
             this.model = Airport
-      } 
+      }
 
       async createAirport({ name, address, cityId }) {
             try {
                   const city = await City.findByPk(cityId)
                   if (!city) {
-                        throw new apiError(400, "City with this id does not exists")
+                        throw new AppError(
+                              'ValidationError',
+                              'City does not exist',
+                              `City with id ${cityId} not found`,
+                              StatusCodes.BAD_REQUEST
+                        )
                   }
 
                   const airport = await this.model.create({
@@ -21,7 +26,13 @@ class AirportRepository {
                   })
                   return airport
             } catch (error) {
-                  throw buildApiError(error, 500, "Error while creating airport in airport_repository")
+                  if (error instanceof AppError) throw error;
+                  throw new AppError(
+                        'DatabaseError',
+                        'Error creating airport',
+                        error.message,
+                        StatusCodes.INTERNAL_SERVER_ERROR
+                  );
             }
       }
 
@@ -30,7 +41,13 @@ class AirportRepository {
                   const airport = await this.model.findByPk(airportId);
                   return airport
             } catch (error) {
-                  throw buildApiError(error, 500, "Error while geting airport in airport_repository")
+                  if (error instanceof AppError) throw error;
+                  throw new AppError(
+                        'DatabaseError',
+                        'Error fetching airport',
+                        error.message,
+                        StatusCodes.INTERNAL_SERVER_ERROR
+                  );
             }
       }
 
@@ -39,15 +56,26 @@ class AirportRepository {
                   const airports = await this.model.findAll()
                   return airports
             } catch (error) {
-                  throw buildApiError(error, 500, "Error while geting all airports in airport_repository")
+                  if (error instanceof AppError) throw error;
+                  throw new AppError(
+                        'DatabaseError',
+                        'Error fetching airports',
+                        error.message,
+                        StatusCodes.INTERNAL_SERVER_ERROR
+                  );
             }
       }
 
       async updateAirport(airportId, data) {
             try {
                   const airport = await this.model.findByPk(airportId)
-                  if (!airport){
-                        throw new apiError(400, "Airport with this id does not exists")
+                  if (!airport) {
+                        throw new AppError(
+                              'NotFoundError',
+                              'Airport not found',
+                              `Airport with id ${airportId} does not exist`,
+                              StatusCodes.NOT_FOUND
+                        )
                   }
 
                   if (!data.name) data.name = airport.name;
@@ -55,8 +83,13 @@ class AirportRepository {
                   if (!data.cityId) data.cityId = airport.cityId
 
                   const city = await City.findByPk(data.cityId)
-                  if (!city){
-                        throw new apiError(400, "City does not exits to upate in airport")
+                  if (!city) {
+                        throw new AppError(
+                              'ValidationError',
+                              'City does not exist for update',
+                              `City with id ${data.cityId} not found`,
+                              StatusCodes.BAD_REQUEST
+                        )
                   }
 
                   airport.name = data.name.toLowerCase()
@@ -66,7 +99,13 @@ class AirportRepository {
                   await airport.save()
                   return airport
             } catch (error) {
-                  throw buildApiError(error, 500, "Error while updating airport in airport_repository")
+                  if (error instanceof AppError) throw error;
+                  throw new AppError(
+                        'DatabaseError',
+                        'Error updating airport',
+                        error.message,
+                        StatusCodes.INTERNAL_SERVER_ERROR
+                  );
             }
       }
 
@@ -79,7 +118,13 @@ class AirportRepository {
                   })
                   return deleteAirport > 0;
             } catch (error) {
-                  throw buildApiError(error, 500, "Error while deleting airport in airport_repository")
+                  if (error instanceof AppError) throw error;
+                  throw new AppError(
+                        'DatabaseError',
+                        'Error deleting airport',
+                        error.message,
+                        StatusCodes.INTERNAL_SERVER_ERROR
+                  );
             }
       }
 }

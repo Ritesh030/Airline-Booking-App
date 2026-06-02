@@ -1,7 +1,8 @@
-const apiError = require("../utils/api_error")
+const { AppError } = require("../utils")
+const { StatusCodes } = require("http-status-codes")
 
-const validateCreateFlight = async (req,res,next) => {
-      if(
+const validateCreateFlight = async (req, res, next) => {
+      if (
             !req.body.flightNumber ||
             !req.body.airplaneId ||
             !req.body.departureAirportId ||
@@ -9,8 +10,8 @@ const validateCreateFlight = async (req,res,next) => {
             !req.body.arrivalTime ||
             !req.body.departureTime ||
             !req.body.price
-      ){
-            throw new apiError(400, "all the fields are required")
+      ) {
+            throw new AppError('ValidationError', 'all the fields are required', 'All required fields must be provided', StatusCodes.BAD_REQUEST)
       }
       next()
 }

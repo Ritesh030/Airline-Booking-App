@@ -1,16 +1,15 @@
-const {AirplaneService} = require('../services/index');
-const apiResponse = require('../utils/api_response');
-const { sendErrorResponse } = require('../utils/error_handler');
+const { StatusCodes } = require('http-status-codes');
+const { AirplaneService } = require('../services/index');
+const { sendSuccessResponse, sendErrorResponse } = require('../utils');
 
 const airplaneService = new AirplaneService()
 
-const create = async (req,res) => {
+const create = async (req, res) => {
       try {
             const result = await airplaneService.create(req.body);
-      
-            return res.status(201).json(new apiResponse(201, result, "airplane created"))
+            return sendSuccessResponse(res, StatusCodes.CREATED, "airplane created", result);
       } catch (error) {
-            return sendErrorResponse(res, error, "Failed to create airplane")
+            return sendErrorResponse(res, error);
       }
 }
 
