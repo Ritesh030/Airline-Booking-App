@@ -62,9 +62,9 @@ class FlightService {
             }
       }
 
-      async updateFlight(flightId, updateData) {
+      async decrementSeats(flightId, seatsToDecrement) {
             try {
-                  const flight = await this.flightRepository.updateFlight(flightId, updateData);
+                  const flight = await this.flightRepository.decrementSeats(flightId, seatsToDecrement);
                   return flight
             } catch (error) {
                   if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError' || error.name === 'SequelizeForeignKeyConstraintError') {

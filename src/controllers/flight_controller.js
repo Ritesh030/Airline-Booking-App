@@ -40,11 +40,11 @@ const getAll = async (req, res) => {
       }
 }
 
-const update = async (req, res) => {
+const decrementSeats = async (req, res) => {
       try {
             const flightId = req.params.id;
-            const updateData = req.body;
-            const flight = await flightService.updateFlight(flightId, updateData);
+            const seatsToDecrement = Number(req.body.seatsToDecrement);
+            const flight = await flightService.decrementSeats(flightId, seatsToDecrement);
             return sendSuccessResponse(res, StatusCodes.OK, "flight updated", flight);
       } catch (error) {
             return sendErrorResponse(res, error);
@@ -55,5 +55,5 @@ module.exports = {
       create,
       get,
       getAll,
-      update
+      decrementSeats
 }

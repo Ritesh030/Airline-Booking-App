@@ -1,6 +1,7 @@
 const { Op } = require("sequelize");
 const AppError = require('../utils/AppError');
 const { StatusCodes } = require('http-status-codes');
+const { sequelize } = require("../models");
 
 class FlightRepository {
       constructor(flight) {
@@ -81,27 +82,36 @@ class FlightRepository {
             }
       }
 
-      async updateFlight(flightId, updateData) {
+      async decrementSeats(flightId, seatsToDecrement) {
             try {
-                  const flight = await this.flightModel.findByPk(flightId)
-                  if (!flight) {
+                  const [updatedRowCount] = await this.flightModel.update(
+                        { totalSeats: sequelize.literal(`totalSeats - ${seatsToDecrement}`) },
+                        {
+                              where: {
+                                    id: flightId,
+                                    totalSeats: { [Op.gte]: seatsToDecrement }
+                              }
+                        }
+                  )
+
+                  if (updatedRowCount === 0) {
                         throw new AppError(
-                              'NotFoundError',
-                              'Flight not found',
-                              `Flight with id ${flightId} does not exist`,
-                              StatusCodes.NOT_FOUND
+                              'SeatUnavailableError',
+                              'Not enough seats available',
+                              `Flight ${flightId} does not have ${seatsToDecrement} seats left`,
+                              StatusCodes.CONFLICT
                         )
                   }
-                  const updatedFlight = await flight.update(updateData)
-                  return updatedFlight
+
+                  return true
             } catch (error) {
-                  if (error instanceof AppError) throw error;
+                  if (error instanceof AppError) throw error
                   throw new AppError(
                         'DatabaseError',
-                        'Error updating flight',
+                        'Error updating flight seats',
                         error.message,
                         StatusCodes.INTERNAL_SERVER_ERROR
-                  );
+                  )
             }
       }
 }
